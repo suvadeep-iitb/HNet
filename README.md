@@ -1,4 +1,4 @@
-# A Hierarchical Transformer Network for SCA
+# HierNet: A Hierarchical Transformer Network for SCA
 
 This repository contains the implementation of HierNet, a hierarchical transformer network for Side Channel Analysis.
 
