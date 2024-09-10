@@ -51,7 +51,7 @@ CONV_KERNEL_SIZE=7
 N_CONV_LAYER=2
 POOL_SIZE=10
 D_KERNEL_MAP=512
-BETA_2=50
+BETA_HAT_2=50
 MODEL_NORM='preLC'
 HEAD_INIT='forward'
 SEG_LEN=2500 # Segment length; since the traces has been compressed by a factor of 2, 
@@ -104,7 +104,7 @@ if [[ $1 == 'train' ]]; then
 	--n_conv_layer=${N_CONV_LAYER} \
         --pool_size=${POOL_SIZE} \
 	--d_kernel_map=${D_KERNEL_MAP} \
-	--beta_2=${BETA_2} \
+	--beta_hat_2=${BETA_HAT_2} \
 	--model_normalization=${MODEL_NORM} \
 	--head_initialization=${HEAD_INIT} \
 	--seg_len=${SEG_LEN} \
@@ -148,7 +148,7 @@ elif [[ $1 == 'test' ]]; then
 	--n_conv_layer=${N_CONV_LAYER} \
         --pool_size=${POOL_SIZE} \
 	--d_kernel_map=${D_KERNEL_MAP} \
-	--beta_2=${BETA_2} \
+	--beta_hat_2=${BETA_HAT_2} \
 	--model_normalization=${MODEL_NORM} \
 	--head_initialization=${HEAD_INIT} \
 	--seg_len=${SEG_LEN} \

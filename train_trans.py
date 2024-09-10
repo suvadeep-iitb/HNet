@@ -163,7 +163,7 @@ def create_model(n_classes):
         n_conv_layer = FLAGS.n_conv_layer,
         pool_size = FLAGS.pool_size,
         d_kernel_map = FLAGS.d_kernel_map,
-        beta_2 = FLAGS.beta_2,
+        beta_hat_2 = FLAGS.beta_hat_2,
         model_normalization = FLAGS.model_normalization,
         head_initialization = FLAGS.head_initialization,
         seg_len = FLAGS.seg_len,
@@ -475,7 +475,7 @@ def print_hyperparams():
     tf.compat.v1.logging.info("n_conv_layer          : %s" % (FLAGS.n_conv_layer))
     tf.compat.v1.logging.info("pool_size             : %s" % (FLAGS.pool_size))
     tf.compat.v1.logging.info("d_kernel_map          : %s" % (FLAGS.d_kernel_map))
-    tf.compat.v1.logging.info("beta_2                : %s" % (FLAGS.beta_2))
+    tf.compat.v1.logging.info("beta_hat_2            : %s" % (FLAGS.beta_hat_2))
     tf.compat.v1.logging.info("model_normalization   : %s" % (FLAGS.model_normalization))
     tf.compat.v1.logging.info("head_initialization   : %s" % (FLAGS.head_initialization))
     tf.compat.v1.logging.info("seg_len               : %s" % (FLAGS.seg_len))

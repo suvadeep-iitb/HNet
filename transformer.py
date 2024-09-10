@@ -14,11 +14,11 @@ def shape_list(x):
 
 
 class PositionalFeature(tf.keras.layers.Layer):
-    def __init__(self, d_feature, beta_2, **kwargs):
+    def __init__(self, d_feature, beta_hat_2, **kwargs):
         super().__init__(**kwargs)
 
         self.slopes = tf.range(d_feature, 0, -4.0, dtype=tf.float32) / d_feature
-        self.slopes = self.slopes * beta_2
+        self.slopes = self.slopes * beta_hat_2
 
     def call(self, slen, bsz=None):
         pos_seq = tf.range(0, slen, 1.0, dtype=tf.float32)/float(slen-1)
@@ -285,7 +285,7 @@ class SoftmaxAttention(tf.keras.layers.Layer):
 class EstraNet(tf.keras.Model):
     def __init__(self, n_layer, d_model, d_head, n_head, d_inner, dropout, 
                  n_classes, conv_kernel_size, n_conv_layer, pool_size, d_kernel_map, 
-                 beta_2, model_normalization, head_initialization='forward', 
+                 beta_hat_2, model_normalization, head_initialization='forward', 
                  output_attn=False):
 
         super(EstraNet, self).__init__()
@@ -298,7 +298,7 @@ class EstraNet(tf.keras.Model):
         self.feature_map_type = 'fourier'
         self.normalize_attn = False
         self.d_kernel_map = d_kernel_map
-        self.beta_2 = beta_2
+        self.beta_hat_2 = beta_hat_2
         self.model_normalization = model_normalization
         self.head_initialization = head_initialization
 
@@ -325,7 +325,7 @@ class EstraNet(tf.keras.Model):
             self.relu_layers.append(tf.keras.layers.ReLU())
             self.pool_layers.append(tf.keras.layers.AveragePooling1D(self.pool_size, self.pool_size, padding='same'))
 
-        self.pos_feature = PositionalFeature(self.d_model, self.beta_2)
+        self.pos_feature = PositionalFeature(self.d_model, self.beta_hat_2)
 
         head_init_ranges = []
         if self.head_initialization == 'forward':
@@ -402,7 +402,7 @@ class EstraNet(tf.keras.Model):
 class HierTransformer(tf.keras.Model):
     def __init__(self, n_layer, d_model, d_head, n_head, d_inner, 
                  d_head_softmax, n_head_softmax, dropout, n_classes, 
-                 conv_kernel_size, n_conv_layer, pool_size, d_kernel_map, beta_2, 
+                 conv_kernel_size, n_conv_layer, pool_size, d_kernel_map, beta_hat_2, 
                  model_normalization, head_initialization='forward', seg_len=5000, 
                  seg_stride=3000, input_len=10000, softmax_attn=True, output_attn=False):
 
@@ -418,7 +418,7 @@ class HierTransformer(tf.keras.Model):
         self.feature_map_type = 'fourier'
         self.normalize_attn = False
         self.d_kernel_map = d_kernel_map
-        self.beta_2 = beta_2
+        self.beta_hat_2 = beta_hat_2
         self.model_normalization = model_normalization
         self.head_initialization = head_initialization
         self.seg_len = seg_len
@@ -447,7 +447,7 @@ class HierTransformer(tf.keras.Model):
                                     n_conv_layer=self.n_conv_layer, 
                                     pool_size=self.pool_size, 
                                     d_kernel_map=self.d_kernel_map, 
-                                    beta_2=self.beta_2, 
+                                    beta_hat_2=self.beta_hat_2, 
                                     model_normalization=self.model_normalization, 
                                     head_initialization=self.head_initialization, 
                                     output_attn=self.output_attn)
