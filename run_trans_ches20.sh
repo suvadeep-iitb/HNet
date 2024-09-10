@@ -27,7 +27,7 @@ START_IDX=0 # Starting index of the attack window; should be zero for
             # attacking the full-length traces
 
 # Training config
-TRAIN_BSZ=16
+TRAIN_BSZ=64
 EVAL_BSZ=16
 TRAIN_STEPS=4000000
 WARMUP_STEPS=4000000
