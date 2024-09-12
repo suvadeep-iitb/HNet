@@ -8,6 +8,7 @@ class FullSelfAttention(tf.keras.layers.Layer):
         d_model,
         d_head,
         dropout,
+        gamma,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -16,16 +17,26 @@ class FullSelfAttention(tf.keras.layers.Layer):
         self.d_model = d_model
         self.d_head = d_head
         self.dropout = dropout
+        self.gamma = gamma
 
-        self.q_net = tf.keras.layers.Dense(
-            self.n_head * self.d_head, use_bias=False, name="q_net"
+        self.q_net_inp = tf.keras.layers.Dense(
+            self.n_head * self.d_head, use_bias=False, name="q_net_inp"
         )
-        self.k_net = tf.keras.layers.Dense(
-            self.n_head * self.d_head, use_bias=False, name="k_net"
+        self.k_net_inp = tf.keras.layers.Dense(
+            self.n_head * self.d_head, use_bias=False, name="k_net_inp"
         )
+
+        self.q_net_pos = tf.keras.layers.Dense(
+            self.n_head * self.d_head, use_bias=False, name="q_net_pos"
+        )
+        self.k_net_pos = tf.keras.layers.Dense(
+            self.n_head * self.d_head, use_bias=False, name="k_net_pos"
+        )
+
         self.v_net = tf.keras.layers.Dense(
             self.n_head * self.d_head, use_bias=False, name="v_net"
         )
+
         self.o_net = tf.keras.layers.Dense(
             self.d_model, use_bias=False, name="o_net"
         )
@@ -55,29 +66,47 @@ class FullSelfAttention(tf.keras.layers.Layer):
         if training:
             self.softmax_attn_smoothing.assign(softmax_attn_smoothing)
 
-        q_head = self.q_net(pos_emb)
-        k_head = self.k_net(pos_emb)
+        q_head_inp = self.q_net_inp(inp)
+        k_head_inp = self.k_net_inp(inp)
+
+        q_head_pos = self.q_net_pos(pos_emb)
+        k_head_pos = self.k_net_pos(pos_emb)
+
         v_head = self.v_net(inp)
 
-        q_head = self.drop_q(q_head, training=training)
-        k_head = self.drop_k(k_head, training=training)
+        q_head_inp = self.drop_q(q_head_inp, training=training)
+        k_head_inp = self.drop_k(k_head_inp, training=training)
+
+        q_head_pos = self.drop_q(q_head_pos, training=training)
+        k_head_pos = self.drop_k(k_head_pos, training=training)
+
         v_head = self.drop_v(v_head, training=training)
 
-        q_head = tf.reshape(q_head, [slen, self.d_head, self.n_head])
-        k_head = tf.reshape(k_head, [slen, self.d_head, self.n_head])
+        q_head_inp = tf.reshape(q_head_inp, [-1, slen, self.d_head, self.n_head])
+        k_head_inp = tf.reshape(k_head_inp, [-1, slen, self.d_head, self.n_head])
+
+        q_head_pos = tf.reshape(q_head_pos, [slen, self.d_head, self.n_head])
+        k_head_pos = tf.reshape(k_head_pos, [slen, self.d_head, self.n_head])
+
         v_head = tf.reshape(v_head, [-1, slen, self.d_head, self.n_head])
 
-        attn_score = tf.einsum("idh,jdh->ijh", q_head, k_head)
-        attn_score = attn_score * self.scale * self.softmax_attn_smoothing
+        attn_score_inp = tf.einsum("bidh,bjdh->bijh", q_head_inp, k_head_inp)
+        attn_score_inp = attn_score_inp * self.scale * self.softmax_attn_smoothing
+        attn_prob_inp = tf.nn.softmax(attn_score_inp, axis=2)
 
-        attn_prob = tf.nn.softmax(attn_score, axis=1)
+        attn_score_pos = tf.einsum("idh,jdh->ijh", q_head_pos, k_head_pos)
+        attn_score_pos = attn_score_pos * self.scale * self.softmax_attn_smoothing
+        attn_prob_pos = tf.nn.softmax(attn_score_pos, axis=1)
+        attn_prob_pos = tf.reshape(attn_prob_pos, [1, slen, slen, self.n_head])
 
-        attn_out = tf.einsum("ijh,bjdh->bihd", attn_prob, v_head)
+        attn_prob = (1-self.gamma)*attn_prob_inp + self.gamma*attn_prob_pos
+
+        attn_out = tf.einsum("bijh,bjdh->bihd", attn_prob, v_head)
         attn_out = tf.reshape(attn_out, [bsz, slen, -1])
 
         attn_out = self.o_net(attn_out)
         attn_out = self.drop_o(attn_out, training=training)
 
-        return [attn_out, attn_score]
+        return [attn_out, attn_prob]
 
 

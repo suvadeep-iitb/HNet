@@ -158,6 +158,7 @@ class SecondLevelTransformerLayer(tf.keras.layers.Layer):
         d_inner,
         dropout,
         model_normalization,
+        gamma,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -168,12 +169,14 @@ class SecondLevelTransformerLayer(tf.keras.layers.Layer):
         self.d_inner = d_inner
         self.dropout = dropout
         self.model_normalization = model_normalization
+        self.gamma = gamma
 
         self.self_attn = FullSelfAttention(
             n_head=self.n_head,
             d_model=self.d_model,
             d_head=self.d_head,
             dropout=self.dropout,
+            gamma=self.gamma,
             name="full_self_attn",
         )
         self.pos_ff = PositionwiseFF(
@@ -403,7 +406,7 @@ class HierTransformer(tf.keras.Model):
     def __init__(self, n_layer, d_model, d_head, n_head, d_inner, 
                  d_head_softmax, n_head_softmax, dropout, n_classes, 
                  conv_kernel_size, n_conv_layer, pool_size, d_kernel_map, beta_hat_2, 
-                 model_normalization, head_initialization='forward', seg_len=5000, 
+                 gamma, model_normalization, head_initialization='forward', seg_len=5000, 
                  seg_stride=3000, input_len=10000, softmax_attn=True, output_attn=False):
 
         super(HierTransformer, self).__init__()
@@ -419,6 +422,7 @@ class HierTransformer(tf.keras.Model):
         self.normalize_attn = False
         self.d_kernel_map = d_kernel_map
         self.beta_hat_2 = beta_hat_2
+        self.gamma = gamma
         self.model_normalization = model_normalization
         self.head_initialization = head_initialization
         self.seg_len = seg_len
@@ -470,6 +474,7 @@ class HierTransformer(tf.keras.Model):
                     d_inner=self.d_inner,
                     dropout=self.dropout,
                     model_normalization=self.model_normalization,
+                    gamma=self.gamma,
                     name='full_trans_layer'
                 )
 

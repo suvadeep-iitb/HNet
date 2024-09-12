@@ -93,6 +93,8 @@ flags.DEFINE_integer("d_kernel_map", default=128,
       help="Dimension of the kernel feature map (d_e) of internal EstraNet model.")
 flags.DEFINE_integer("beta_hat_2", default=100,
       help="Distance based scaling in the kernel of self-attention of internal EstraNet model")
+flags.DEFINE_float("gamma", default=1,
+      help="Distance gamma hyper-parameter of the self-attention with absolute positional encoding, can be in [0, 1]")
 flags.DEFINE_float("dropout", default=0.1,
       help="Dropout rate.")
 flags.DEFINE_integer("conv_kernel_size", default=3,
@@ -164,6 +166,7 @@ def create_model(n_classes):
         pool_size = FLAGS.pool_size,
         d_kernel_map = FLAGS.d_kernel_map,
         beta_hat_2 = FLAGS.beta_hat_2,
+        gamma = FLAGS.gamma,
         model_normalization = FLAGS.model_normalization,
         head_initialization = FLAGS.head_initialization,
         seg_len = FLAGS.seg_len,
